@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Fatoora — Société{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>🏢 Informations de la Société</h2>
+        <p>Ces informations apparaîtront sur toutes vos factures.</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('company_edit') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Nom de la société</label>
+                    <input type="text" name="name" class="form-control" value="{{ company.name }}"
+                           placeholder="Ex: EURL MTEG FOOD">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Adresse</label>
+                    <input type="text" name="address" class="form-control" value="{{ company.address }}"
+                           placeholder="Adresse complète">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">R.C Nᵒ</label>
+                    <input type="text" name="rc_no" class="form-control" value="{{ company.rc_no }}"
+                           placeholder="Registre du Commerce">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">I.F Nᵒ</label>
+                    <input type="text" name="if_no" class="form-control" value="{{ company.if_no }}"
+                           placeholder="Identification Fiscale">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">AR. Nᵒ</label>
+                    <input type="text" name="ar_no" class="form-control" value="{{ company.ar_no }}"
+                           placeholder="Article">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">TEL Nᵒ</label>
+                    <input type="text" name="tel" class="form-control" value="{{ company.tel }}"
+                           placeholder="0000.00.00.00">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">FAX Nᵒ</label>
+                    <input type="text" name="fax" class="form-control" value="{{ company.fax }}"
+                           placeholder="0000.00.00.00">
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

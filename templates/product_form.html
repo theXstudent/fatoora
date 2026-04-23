@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Fatoora — {% if product %}Modifier{% else %}Nouveau{% endif %} Produit{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>{% if product %}✏️ Modifier le produit{% else %}➕ Nouveau Produit{% endif %}</h2>
+        <p>{% if product %}Modifier « {{ product.name }} ».{% else %}Ajoutez un nouveau produit au catalogue.{% endif %}</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="{% if product %}{{ url_for('product_edit', id=product.id) }}{% else %}{{ url_for('product_new') }}{% endif %}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Nom du produit *</label>
+                    <input type="text" name="name" class="form-control"
+                           value="{{ product.name if product else '' }}" required
+                           placeholder="Ex: ARACHID BL">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">TVA par défaut (%)</label>
+                    <input type="number" name="default_tva" class="form-control"
+                           value="{{ product.default_tva if product else 19 }}" step="0.01" min="0"
+                           placeholder="19">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Prix unitaire par défaut (DA)</label>
+                    <input type="number" name="default_price" class="form-control"
+                           value="{{ product.default_price if product else 0 }}" step="0.01" min="0"
+                           placeholder="0.00">
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    💾 {% if product %}Mettre à jour{% else %}Enregistrer{% endif %}
+                </button>
+                <a href="{{ url_for('products') }}" class="btn btn-outline">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

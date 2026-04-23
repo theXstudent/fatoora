@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Fatoora — Tableau de bord{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Tableau de bord</h2>
+        <p>Bienvenue sur Fatoora — {{ company.name }}</p>
+    </div>
+    <a href="{{ url_for('invoice_new') }}" class="btn btn-primary">
+        ➕ Nouvelle Facture
+    </a>
+</div>
+
+<!-- Statistics -->
+<div class="stats-grid">
+    <div class="stat-card invoices">
+        <div class="stat-icon">📋</div>
+        <div class="stat-value">{{ total_invoices }}</div>
+        <div class="stat-label">Factures</div>
+    </div>
+    <div class="stat-card clients">
+        <div class="stat-icon">👥</div>
+        <div class="stat-value">{{ total_clients }}</div>
+        <div class="stat-label">Clients</div>
+    </div>
+    <div class="stat-card revenue">
+        <div class="stat-icon">💰</div>
+        <div class="stat-value">{{ "{:,.2f}".format(total_revenue) }}</div>
+        <div class="stat-label">Chiffre d'affaires (DA)</div>
+    </div>
+</div>
+
+<!-- Recent Invoices -->
+<div class="card">
+    <div class="card-header">
+        <h5>📋 Factures récentes</h5>
+        <a href="{{ url_for('invoices') }}" class="btn btn-outline btn-sm">Voir tout →</a>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        {% if recent_invoices %}
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>N° Facture</th>
+                        <th>Date</th>
+                        <th>Client</th>
+                        <th>Total H.T</th>
+                        <th>NET A PAYER</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inv in recent_invoices %}
+                    <tr>
+                        <td><span class="badge badge-primary text-mono">{{ inv.invoice_number }}</span></td>
+                        <td>{{ inv.date.strftime('%d.%m.%Y') }}</td>
+                        <td>{{ inv.client.name }}</td>
+                        <td class="text-mono">{{ "{:,.2f}".format(inv.total_ht) }}</td>
+                        <td class="text-mono" style="font-weight:600; color: var(--accent-success);">
+                            {{ "{:,.2f}".format(inv.net_a_payer) }}
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <a href="{{ url_for('invoice_view', id=inv.id) }}" class="btn btn-outline btn-sm" title="Voir">👁</a>
+                                <a href="{{ url_for('invoice_edit', id=inv.id) }}" class="btn btn-outline btn-sm" title="Modifier">✏️</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📄</div>
+            <p>Aucune facture pour le moment.</p>
+            <a href="{{ url_for('invoice_new') }}" class="btn btn-primary">Créer votre première facture</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

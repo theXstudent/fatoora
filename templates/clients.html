@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Fatoora — Clients{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>👥 Clients</h2>
+        <p>Gérez votre répertoire de clients.</p>
+    </div>
+    <a href="{{ url_for('client_new') }}" class="btn btn-primary">➕ Nouveau Client</a>
+</div>
+
+<div class="card">
+    <div class="card-body" style="padding: 0;">
+        {% if clients %}
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Nom / Raison sociale</th>
+                        <th>Ville</th>
+                        <th>R.C Nᵒ</th>
+                        <th>NIF Nᵒ</th>
+                        <th>TEL</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in clients %}
+                    <tr>
+                        <td style="font-weight: 600; color: var(--text-primary);">{{ c.name }}</td>
+                        <td>{{ c.city }}</td>
+                        <td class="text-mono">{{ c.rc_no }}</td>
+                        <td class="text-mono">{{ c.nif_no[:20] }}{% if c.nif_no|length > 20 %}…{% endif %}</td>
+                        <td>{{ c.tel }}</td>
+                        <td>
+                            <div class="actions">
+                                <a href="{{ url_for('client_edit', id=c.id) }}" class="btn btn-outline btn-sm">✏️</a>
+                                <form method="POST" action="{{ url_for('client_delete', id=c.id) }}"
+                                      style="display:inline"
+                                      onsubmit="return confirm('Supprimer ce client ?')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-danger btn-sm">🗑</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <p>Aucun client enregistré.</p>
+            <a href="{{ url_for('client_new') }}" class="btn btn-primary">Ajouter un client</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

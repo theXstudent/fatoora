@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Fatoora — {% if client %}Modifier{% else %}Nouveau{% endif %} Client{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>{% if client %}✏️ Modifier le client{% else %}➕ Nouveau Client{% endif %}</h2>
+        <p>{% if client %}Modifier les informations de « {{ client.name }} ».{% else %}Ajoutez un nouveau client à votre répertoire.{% endif %}</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="{% if client %}{{ url_for('client_edit', id=client.id) }}{% else %}{{ url_for('client_new') }}{% endif %}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Nom / Raison sociale *</label>
+                    <input type="text" name="name" class="form-control"
+                           value="{{ client.name if client else '' }}" required
+                           placeholder="Ex: BOUCHAMA IMAD">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ville / Adresse</label>
+                    <input type="text" name="city" class="form-control"
+                           value="{{ client.city if client else '' }}"
+                           placeholder="Ex: BISKRA">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">R.C. Nᵒ</label>
+                    <input type="text" name="rc_no" class="form-control"
+                           value="{{ client.rc_no if client else '' }}"
+                           placeholder="Registre du Commerce">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">N.I.F. Nᵒ</label>
+                    <input type="text" name="nif_no" class="form-control"
+                           value="{{ client.nif_no if client else '' }}"
+                           placeholder="Numéro d'Identification Fiscale">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">N.I.S. Nᵒ</label>
+                    <input type="text" name="nis_no" class="form-control"
+                           value="{{ client.nis_no if client else '' }}"
+                           placeholder="Numéro d'Identification Statistique">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ART. Nᵒ</label>
+                    <input type="text" name="art_no" class="form-control"
+                           value="{{ client.art_no if client else '' }}"
+                           placeholder="Article d'Imposition">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">TEL Nᵒ</label>
+                    <input type="text" name="tel" class="form-control"
+                           value="{{ client.tel if client else '' }}"
+                           placeholder="0550.00.00.00">
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    💾 {% if client %}Mettre à jour{% else %}Enregistrer{% endif %}
+                </button>
+                <a href="{{ url_for('clients') }}" class="btn btn-outline">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

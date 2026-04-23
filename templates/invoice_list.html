@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Fatoora — Factures{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>📋 Factures</h2>
+        <p>Historique de toutes vos factures.</p>
+    </div>
+    <a href="{{ url_for('invoice_new') }}" class="btn btn-primary">➕ Nouvelle Facture</a>
+</div>
+
+<div class="card">
+    <div class="card-body" style="padding: 0;">
+        {% if invoices %}
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>N° Facture</th>
+                        <th>Date</th>
+                        <th>Client</th>
+                        <th>Articles</th>
+                        <th>Total H.T</th>
+                        <th>TVA</th>
+                        <th>NET A PAYER</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inv in invoices %}
+                    <tr>
+                        <td><span class="badge badge-primary text-mono">{{ inv.invoice_number }}</span></td>
+                        <td>{{ inv.date.strftime('%d.%m.%Y') }}</td>
+                        <td style="font-weight:500;">{{ inv.client.name }}</td>
+                        <td class="text-center">{{ inv.items|length }}</td>
+                        <td class="text-mono">{{ "{:,.2f}".format(inv.total_ht) }}</td>
+                        <td class="text-mono">{{ "{:,.2f}".format(inv.total_tva) }}</td>
+                        <td class="text-mono" style="font-weight:700; color: var(--accent-success);">
+                            {{ "{:,.2f}".format(inv.net_a_payer) }}
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <a href="{{ url_for('invoice_view', id=inv.id) }}" class="btn btn-outline btn-sm" title="Voir / Imprimer">👁</a>
+                                <a href="{{ url_for('invoice_edit', id=inv.id) }}" class="btn btn-outline btn-sm" title="Modifier">✏️</a>
+                                <a href="{{ url_for('invoice_pdf', id=inv.id) }}" class="btn btn-outline btn-sm" title="PDF" target="_blank">📥</a>
+                                <form method="POST" action="{{ url_for('invoice_delete', id=inv.id) }}"
+                                      style="display:inline"
+                                      onsubmit="return confirm('Supprimer cette facture ?')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-danger btn-sm">🗑</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <p>Aucune facture pour le moment.</p>
+            <a href="{{ url_for('invoice_new') }}" class="btn btn-primary">Créer votre première facture</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

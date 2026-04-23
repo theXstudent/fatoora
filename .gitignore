@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+venv/
+.env
+fatoora.db
+.DS_Store

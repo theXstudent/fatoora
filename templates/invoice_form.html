@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Fatoora — {% if invoice %}Modifier{% else %}Nouvelle{% endif %} Facture{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>{% if invoice %}✏️ Modifier la Facture N° {{ invoice.invoice_number }}{% else %}➕ Nouvelle Facture{% endif %}</h2>
+        <p>Remplissez les informations et ajoutez des articles.</p>
+    </div>
+</div>
+
+<form method="POST" action="{% if invoice %}{{ url_for('invoice_edit', id=invoice.id) }}{% else %}{{ url_for('invoice_new') }}{% endif %}" id="invoice-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <!-- Invoice Header -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>📄 Informations de la facture</h5>
+        </div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">N° Facture</label>
+                    <input type="text" name="invoice_number" class="form-control text-mono"
+                           value="{{ next_number }}" readonly
+                           style="background: var(--bg-card); font-weight: 700; color: var(--accent-primary-hover);">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date *</label>
+                    <input type="date" name="date" class="form-control"
+                           value="{{ today }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Client *</label>
+                    <select name="client_id" class="form-control" required>
+                        <option value="">— Sélectionner un client —</option>
+                        {% for c in clients %}
+                        <option value="{{ c.id }}"
+                                {% if invoice and invoice.client_id == c.id %}selected{% endif %}>
+                            {{ c.name }} — {{ c.city }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Conditions de paiement</label>
+                    <input type="text" name="payment_terms" class="form-control"
+                           value="{{ invoice.payment_terms if invoice else 'REGLEE A TERME' }}"
+                           placeholder="REGLEE A TERME">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice Items -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>📦 Articles</h5>
+            <div class="d-flex gap-2 align-center">
+                <select id="product-select" class="form-control" style="width: 220px; padding: 8px 12px; font-size: 0.82rem;">
+                    <option value="">+ Ajouter depuis le catalogue</option>
+                    {% for p in products %}
+                    <option value="{{ p.id }}">{{ p.name }} ({{ "{:,.2f}".format(p.default_price) }} DA)</option>
+                    {% endfor %}
+                </select>
+                <button type="button" id="add-row-btn" class="btn btn-success btn-sm">
+                    ➕ Ligne vide
+                </button>
+            </div>
+        </div>
+        <div class="card-body" style="padding: 12px;">
+            <div class="table-container">
+                <table class="invoice-items-table">
+                    <thead>
+                        <tr>
+                            <th style="width:28%;">Produit</th>
+                            <th style="width:10%;">TVA %</th>
+                            <th style="width:8%;">NBR.CO</th>
+                            <th style="width:14%;">Quantité</th>
+                            <th style="width:15%;">Prix U.</th>
+                            <th style="width:15%;">Total H.T</th>
+                            <th style="width:5%;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoice-items-body">
+                        {% if invoice and invoice.items %}
+                        {% for item in invoice.items %}
+                        <tr class="item-row">
+                            <td>
+                                <input type="text" name="product_name[]" value="{{ item.product_name }}"
+                                       class="form-control" placeholder="Nom du produit" required>
+                            </td>
+                            <td>
+                                <input type="number" name="tva_rate[]" value="{{ item.tva_rate }}" step="0.01" min="0"
+                                       class="form-control text-center" style="width:80px">
+                            </td>
+                            <td>
+                                <input type="number" name="nbr_co[]" value="{{ item.nbr_co }}" min="1"
+                                       class="form-control text-center" style="width:70px">
+                            </td>
+                            <td>
+                                <input type="number" name="quantity[]" value="{{ item.quantity }}" step="0.001" min="0"
+                                       class="form-control" style="width:110px" required>
+                            </td>
+                            <td>
+                                <input type="number" name="unit_price[]" value="{{ item.unit_price }}" step="0.01" min="0"
+                                       class="form-control" style="width:120px" required>
+                            </td>
+                            <td class="row-total" data-total="{{ item.total_ht }}">{{ "{:,.2f}".format(item.total_ht) }}</td>
+                            <td>
+                                <button type="button" class="btn btn-danger btn-icon btn-sm remove-row-btn"
+                                        title="Supprimer la ligne">✕</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Totals -->
+            <div class="totals-section">
+                <div class="totals-box">
+                    <div class="totals-row">
+                        <span class="label">Total H.T</span>
+                        <span class="value" id="total-ht-display">0.00</span>
+                    </div>
+                    <div class="totals-row">
+                        <span class="label">TVA</span>
+                        <span class="value" id="total-tva-display">0.00</span>
+                    </div>
+                    <div class="totals-row grand-total">
+                        <span class="label">NET A PAYER</span>
+                        <span class="value" id="net-a-payer-display">0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="d-flex gap-2" style="justify-content: flex-end;">
+        <a href="{{ url_for('invoices') }}" class="btn btn-outline">Annuler</a>
+        <button type="submit" class="btn btn-primary" style="padding: 12px 32px; font-size: 0.95rem;">
+            💾 {% if invoice %}Mettre à jour{% else %}Enregistrer la facture{% endif %}
+        </button>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/invoice.js') }}"></script>
+{% endblock %}

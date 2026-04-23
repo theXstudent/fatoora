@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Fatoora — Produits{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>📦 Produits</h2>
+        <p>Gérez votre catalogue de produits.</p>
+    </div>
+    <a href="{{ url_for('product_new') }}" class="btn btn-primary">➕ Nouveau Produit</a>
+</div>
+
+<div class="card">
+    <div class="card-body" style="padding: 0;">
+        {% if products %}
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Nom du produit</th>
+                        <th>TVA (%)</th>
+                        <th>Prix unitaire (DA)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in products %}
+                    <tr>
+                        <td style="font-weight: 600; color: var(--text-primary);">{{ p.name }}</td>
+                        <td class="text-mono">{{ p.default_tva }}%</td>
+                        <td class="text-mono">{{ "{:,.2f}".format(p.default_price) }}</td>
+                        <td>
+                            <div class="actions">
+                                <a href="{{ url_for('product_edit', id=p.id) }}" class="btn btn-outline btn-sm">✏️</a>
+                                <form method="POST" action="{{ url_for('product_delete', id=p.id) }}"
+                                      style="display:inline"
+                                      onsubmit="return confirm('Supprimer ce produit ?')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-danger btn-sm">🗑</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📦</div>
+            <p>Aucun produit enregistré.</p>
+            <a href="{{ url_for('product_new') }}" class="btn btn-primary">Ajouter un produit</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

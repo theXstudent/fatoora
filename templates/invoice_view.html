@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facture N° {{ invoice.invoice_number }} — {{ company.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/invoice.css') }}">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+    </style>
+</head>
+<body>
+    <div class="invoice-preview-wrapper">
+        <!-- Toolbar (hidden on print) -->
+        <div class="invoice-toolbar no-print">
+            <a href="{{ url_for('invoices') }}" class="btn btn-back">← Retour aux factures</a>
+            <div class="d-flex gap-2" style="display:flex;gap:10px;">
+                <a href="{{ url_for('invoice_edit', id=invoice.id) }}" class="btn btn-edit">✏️ Modifier</a>
+                <a href="{{ url_for('invoice_pdf', id=invoice.id) }}" class="btn btn-pdf" target="_blank">📥 PDF</a>
+                <button onclick="window.print()" class="btn btn-print">🖨 Imprimer</button>
+            </div>
+        </div>
+
+        <!-- Invoice Page (A4) -->
+        <div class="invoice-page invoice-shadow {% if is_pdf is defined and is_pdf %}pdf-mode{% endif %}">
+
+            <!-- ============ HEADER ============ -->
+            <div class="invoice-header">
+                <!-- Seller Info (Left) -->
+                <div class="seller-info">
+                    <div class="company-name">{{ company.name }}</div>
+                    <div class="company-address">{{ company.address }}</div>
+                    <div class="company-details">
+                        <div class="detail-line">R.C Nᵒ : {{ company.rc_no }}</div>
+                        <div class="detail-line">I.F Nᵒ :{{ company.if_no }}</div>
+                        <div class="detail-line">AR. Nᵒ : {{ company.ar_no }}</div>
+                        <div class="detail-line">TEL Nᵒ : {{ company.tel }}</div>
+                        <div class="detail-line">FAX Nᵒ : {{ company.fax }}</div>
+                    </div>
+                </div>
+
+                <!-- Invoice Number & Date (Right) -->
+                <div class="invoice-number-block">
+                    <div class="facture-label">* FACTURE Nᵒ : {{ invoice.invoice_number }} *</div>
+                    <div class="facture-date">DATE :&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ invoice.date.strftime('%d.%m.%Y') }}</div>
+                </div>
+            </div>
+
+            <!-- ============ CLIENT INFO ============ -->
+            <div class="client-info">
+                <div class="client-name">{{ invoice.client.name }}</div>
+                <div class="client-city">{{ invoice.client.city }}</div>
+                {% if invoice.client.rc_no %}
+                <div>R.C. Nᵒ: {{ invoice.client.rc_no }}</div>
+                {% endif %}
+                {% if invoice.client.nif_no %}
+                <div>N.I.F. Nᵒ: {{ invoice.client.nif_no }}</div>
+                {% endif %}
+                {% if invoice.client.nis_no %}
+                <div>N.I.S. Nᵒ: {{ invoice.client.nis_no }}</div>
+                {% endif %}
+                {% if invoice.client.art_no %}
+                <div>ART. Nᵒ: {{ invoice.client.art_no }}</div>
+                {% endif %}
+                {% if invoice.client.tel %}
+                <div>TEL Nᵒ: {{ invoice.client.tel }}</div>
+                {% endif %}
+            </div>
+
+            <!-- ============ ITEMS TABLE ============ -->
+            <div class="invoice-table-wrapper">
+                <table class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th class="col-product">PRODUIT</th>
+                            <th class="col-tva">TVA</th>
+                            <th class="col-nbrco">NBR.CO</th>
+                            <th class="col-qty">QUANTITE</th>
+                            <th class="col-price">PRIX U.</th>
+                            <th class="col-total">TOTAL H.T</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in invoice.items %}
+                        <tr>
+                            <td style="text-align:left;">{{ item.product_name }}</td>
+                            <td>{{ "%.0f"|format(item.tva_rate) }}%</td>
+                            <td>{{ item.nbr_co }}</td>
+                            <td>{{ "{:,.3f}".format(item.quantity) }}</td>
+                            <td>{{ "{:,.2f}".format(item.unit_price) }}</td>
+                            <td>{{ "{:,.2f}".format(item.total_ht) }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        {# Fill empty rows to maintain table height #}
+                        {% set empty_rows = 20 - invoice.items|length %}
+                        {% if empty_rows > 0 %}
+                        {% for i in range(empty_rows) %}
+                        <tr class="empty-row">
+                            <td>&nbsp;</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ============ LIGNE COUNT ============ -->
+            <div class="invoice-footer-line">
+                <span class="lignes-text">
+                    {{ "%03d"|format(invoice.items|length) }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lignes
+                </span>
+            </div>
+
+            <!-- ============ FOOTER ============ -->
+            <div class="invoice-footer">
+                <!-- Left: HT amount & payment terms -->
+                <div class="footer-left">
+                    <div class="ht-amount">H.T&nbsp;&nbsp;{{ "{:,.2f}".format(invoice.total_ht) }}</div>
+                    <div class="payment-terms">{{ invoice.payment_terms }}</div>
+                </div>
+
+                <!-- Right: Totals summary -->
+                <div class="footer-right">
+                    <table>
+                        <tr>
+                            <td class="label">Total H.T</td>
+                            <td class="value">{{ "{:,.2f}".format(invoice.total_ht) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">TVA 19%</td>
+                            <td class="value">{{ "{:,.2f}".format(invoice.total_tva) }}</td>
+                        </tr>
+                        <tr class="net-a-payer">
+                            <td class="label">NET A PAYER</td>
+                            <td class="value">{{ "{:,.2f}".format(invoice.net_a_payer) }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ============ AMOUNT IN WORDS ============ -->
+            <div class="amount-words">
+                <span class="label">La presente facture est arretee a la somme de :</span>
+                <span class="words">{{ invoice.amount_in_words }}</span>
+            </div>
+
+            <!-- ============ STAMP AREA ============ -->
+            <div class="stamp-area no-print">
+                Cachet &amp;<br>Signature
+            </div>
+
+        </div><!-- /invoice-page -->
+    </div><!-- /invoice-preview-wrapper -->
+</body>
+</html>
