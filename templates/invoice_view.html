@@ -16,7 +16,6 @@
             <a href="{{ url_for('invoices') }}" class="btn btn-back">← Retour aux factures</a>
             <div class="d-flex gap-2" style="display:flex;gap:10px;">
                 <a href="{{ url_for('invoice_edit', id=invoice.id) }}" class="btn btn-edit">✏️ Modifier</a>
-                <a href="{{ url_for('invoice_pdf', id=invoice.id) }}" class="btn btn-pdf" target="_blank">📥 PDF</a>
                 <button onclick="window.print()" class="btn btn-print">🖨 Imprimer</button>
             </div>
         </div>
@@ -30,6 +29,9 @@
                 <div class="seller-info">
                     <div class="company-name">{{ company.name }}</div>
                     <div class="company-address">{{ company.address }}</div>
+                    {% if company.activity %}
+                    <div class="company-activity">{{ company.activity }}</div>
+                    {% endif %}
                     <div class="company-details">
                         <div class="detail-line">R.C Nᵒ : {{ company.rc_no }}</div>
                         <div class="detail-line">I.F Nᵒ :{{ company.if_no }}</div>
@@ -50,6 +52,9 @@
             <div class="client-info">
                 <div class="client-name">{{ invoice.client.name }}</div>
                 <div class="client-city">{{ invoice.client.city }}</div>
+                {% if invoice.client.activity %}
+                <div class="client-activity">{{ invoice.client.activity }}</div>
+                {% endif %}
                 {% if invoice.client.rc_no %}
                 <div>R.C. Nᵒ: {{ invoice.client.rc_no }}</div>
                 {% endif %}

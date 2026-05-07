@@ -4,3 +4,6 @@ venv/
 .env
 fatoora.db
 .DS_Store
+build/
+dist/
+env/

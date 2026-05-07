@@ -11,11 +11,20 @@ from flask_wtf.csrf import CSRFProtect
 from config import Config
 from models import db, Company, Client, Product, Invoice, InvoiceItem
 
+import sys
+import os
+
 # ---------------------------------------------------------------------------
 # App factory
 # ---------------------------------------------------------------------------
 
-app = Flask(__name__)
+if getattr(sys, 'frozen', False):
+    template_folder = os.path.join(sys._MEIPASS, 'templates')
+    static_folder = os.path.join(sys._MEIPASS, 'static')
+    app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
+else:
+    app = Flask(__name__)
+
 app.config.from_object(Config)
 db.init_app(app)
 csrf = CSRFProtect(app)
@@ -56,6 +65,7 @@ def get_company():
         company = Company(
             name='EURL MTEG FOOD      ……',
             address='CITE KASNAF LOT Nᵒ515 GUE CONSTANTINE',
+            activity='',
             rc_no='16/00-1204232',
             if_no='002416120423298\n00.99.00.01.98',
             ar_no='16268751524',
@@ -107,6 +117,7 @@ def company_edit():
     if request.method == 'POST':
         company.name = request.form.get('name', '')
         company.address = request.form.get('address', '')
+        company.activity = request.form.get('activity', '')
         company.rc_no = request.form.get('rc_no', '')
         company.if_no = request.form.get('if_no', '')
         company.ar_no = request.form.get('ar_no', '')
@@ -134,6 +145,7 @@ def client_new():
         client = Client(
             name=request.form.get('name', ''),
             city=request.form.get('city', ''),
+            activity=request.form.get('activity', ''),
             rc_no=request.form.get('rc_no', ''),
             nif_no=request.form.get('nif_no', ''),
             nis_no=request.form.get('nis_no', ''),
@@ -153,6 +165,7 @@ def client_edit(id):
     if request.method == 'POST':
         client.name = request.form.get('name', '')
         client.city = request.form.get('city', '')
+        client.activity = request.form.get('activity', '')
         client.rc_no = request.form.get('rc_no', '')
         client.nif_no = request.form.get('nif_no', '')
         client.nis_no = request.form.get('nis_no', '')
@@ -354,12 +367,13 @@ def invoice_delete(id):
 def invoice_pdf(id):
     invoice = Invoice.query.get_or_404(id)
     company = get_company()
-    html = render_template('invoice_view.html', invoice=invoice, company=company, is_pdf=True)
+    html = render_template('invoice_pdf.html', invoice=invoice, company=company)
 
     try:
         from xhtml2pdf import pisa
         result = io.BytesIO()
-        pdf = pisa.CreatePDF(io.StringIO(html), dest=result, encoding='utf-8')
+        # Encode HTML to bytes before passing to CreatePDF to prevent Unicode issues
+        pdf = pisa.CreatePDF(io.BytesIO(html.encode('utf-8')), dest=result, encoding='utf-8')
         if not pdf.err:
             response = make_response(result.getvalue())
             response.headers['Content-Type'] = 'application/pdf'
@@ -416,8 +430,11 @@ def seed_data():
 # Main
 # ---------------------------------------------------------------------------
 
-if __name__ == '__main__':
+def init_db():
     with app.app_context():
         db.create_all()
         seed_data()
+
+if __name__ == '__main__':
+    init_db()
     app.run(debug=True, port=5000)

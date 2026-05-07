@@ -30,6 +30,15 @@
             </div>
 
             <div class="form-row">
+                <div class="form-group" style="width: 100%;">
+                    <label class="form-label">Activité</label>
+                    <input type="text" name="activity" class="form-control"
+                           value="{{ client.activity if client else '' }}"
+                           placeholder="Activité du client">
+                </div>
+            </div>
+
+            <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">R.C. Nᵒ</label>
                     <input type="text" name="rc_no" class="form-control"

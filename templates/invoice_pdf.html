@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Facture N° {{ invoice.invoice_number }}</title>
+    <style>
+        @page {
+            size: a4;
+            margin: 1.5cm;
+        }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 12px;
+            color: #000;
+        }
+        table {
+            width: 100%;
+        }
+        .header-table { margin-bottom: 25px; }
+        .seller-name { font-size: 16px; font-weight: bold; margin-bottom: 6px; }
+        .details { font-size: 11px; line-height: 1.4; }
+        
+        .items-table { border-collapse: collapse; margin-bottom: 5px; width: 100%; }
+        .items-table th { 
+            border-top: 1px solid #000; 
+            border-bottom: 1px solid #000; 
+            border-left: 1px dashed #000; 
+            border-right: 1px dashed #000; 
+            padding: 6px; 
+            text-align: left; 
+            font-weight: bold; 
+        }
+        .items-table td { 
+            border-left: 1px dashed #000; 
+            border-right: 1px dashed #000; 
+            padding: 6px; 
+            text-align: right; 
+            vertical-align: top; 
+        }
+        .items-table td:first-child, .items-table th:first-child { 
+            border-left: none; 
+            text-align: left; 
+        }
+        .items-table td:last-child, .items-table th:last-child { 
+            border-right: none; 
+        }
+        
+        .footer-table { border-top: 1px solid #000; padding-top: 10px; margin-top: 5px; width: 100%; }
+        .lignes-count { text-align: center; font-size: 11px; border-top: 1px solid #000; padding: 5px 0; }
+    </style>
+</head>
+<body>
+    <table class="header-table">
+        <tr>
+            <td style="width: 55%; vertical-align: top;">
+                <div class="seller-name">{{ company.name }}</div>
+                <div class="details">{{ company.address }}</div>
+                {% if company.activity %}
+                <div class="details">{{ company.activity }}</div>
+                {% endif %}
+                <div class="details">R.C Nᵒ : {{ company.rc_no }}</div>
+                <div class="details">I.F Nᵒ : {{ company.if_no }}</div>
+                <div class="details">AR. Nᵒ : {{ company.ar_no }}</div>
+                <div class="details">TEL Nᵒ : {{ company.tel }}</div>
+                <div class="details">FAX Nᵒ : {{ company.fax }}</div>
+            </td>
+            <td style="width: 45%; text-align: right; vertical-align: top;">
+                <div style="font-size: 13px; font-weight: bold; margin-bottom: 8px;">* FACTURE Nᵒ : {{ invoice.invoice_number }} *</div>
+                <div>DATE : {{ invoice.date.strftime('%d.%m.%Y') }}</div>
+            </td>
+        </tr>
+    </table>
+
+    <table style="margin-bottom: 25px;">
+        <tr>
+            <td style="width: 40%;"></td>
+            <td style="width: 60%; vertical-align: top; line-height: 1.4;">
+                <div style="font-size: 13px; font-weight: bold; margin-bottom: 2px;">{{ invoice.client.name }}</div>
+                <div style="font-size: 12px; font-weight: bold; margin-bottom: 6px;">{{ invoice.client.city }}</div>
+                {% if invoice.client.activity %}
+                <div>{{ invoice.client.activity }}</div>
+                {% endif %}
+                {% if invoice.client.rc_no %}<div>R.C. Nᵒ: {{ invoice.client.rc_no }}</div>{% endif %}
+                {% if invoice.client.nif_no %}<div>N.I.F. Nᵒ: {{ invoice.client.nif_no }}</div>{% endif %}
+                {% if invoice.client.nis_no %}<div>N.I.S. Nᵒ: {{ invoice.client.nis_no }}</div>{% endif %}
+                {% if invoice.client.art_no %}<div>ART. Nᵒ: {{ invoice.client.art_no }}</div>{% endif %}
+                {% if invoice.client.tel %}<div>TEL Nᵒ: {{ invoice.client.tel }}</div>{% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th style="width: 32%;">PRODUIT</th>
+                <th style="width: 10%;">TVA</th>
+                <th style="width: 10%;">NBR.CO</th>
+                <th style="width: 14%;">QUANTITE</th>
+                <th style="width: 14%;">PRIX U.</th>
+                <th style="width: 20%;">TOTAL H.T</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in invoice.items %}
+            <tr>
+                <td style="width: 32%;">{{ item.product_name }}</td>
+                <td style="width: 10%;">{{ "%.0f"|format(item.tva_rate) }}%</td>
+                <td style="width: 10%;">{{ item.nbr_co }}</td>
+                <td style="width: 14%;">{{ "{:,.3f}".format(item.quantity) }}</td>
+                <td style="width: 14%;">{{ "{:,.2f}".format(item.unit_price) }}</td>
+                <td style="width: 20%;">{{ "{:,.2f}".format(item.total_ht) }}</td>
+            </tr>
+            {% endfor %}
+            
+            {% set empty_rows = 20 - invoice.items|length %}
+            {% if empty_rows > 0 %}
+            {% for i in range(empty_rows) %}
+            <tr>
+                <td style="width: 32%; color: #fff; height: 18px;">-</td>
+                <td style="width: 10%;"></td>
+                <td style="width: 10%;"></td>
+                <td style="width: 14%;"></td>
+                <td style="width: 14%;"></td>
+                <td style="width: 20%;"></td>
+            </tr>
+            {% endfor %}
+            {% endif %}
+        </tbody>
+    </table>
+
+    <div class="lignes-count">
+        {{ "%03d"|format(invoice.items|length) }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lignes
+    </div>
+
+    <table class="footer-table">
+        <tr>
+            <td style="width: 50%; vertical-align: top;">
+                <div style="font-weight: bold; margin-bottom: 4px;">H.T&nbsp;&nbsp;{{ "{:,.2f}".format(invoice.total_ht) }}</div>
+                <div style="font-weight: bold;">{{ invoice.payment_terms }}</div>
+            </td>
+            <td style="width: 50%; text-align: right; vertical-align: top;">
+                <table style="width: 100%;">
+                    <tr>
+                        <td style="width: 60%; text-align: right; padding-right: 15px; font-weight: bold;">Total H.T</td>
+                        <td style="width: 40%; text-align: right; font-weight: bold;">{{ "{:,.2f}".format(invoice.total_ht) }}</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 60%; text-align: right; padding-right: 15px; font-weight: bold;">TVA 19%</td>
+                        <td style="width: 40%; text-align: right; font-weight: bold;">{{ "{:,.2f}".format(invoice.total_tva) }}</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 60%; text-align: right; padding-right: 15px; font-weight: bold; font-size: 13px; border-top: 1px solid #000; padding-top: 4px;">NET A PAYER</td>
+                        <td style="width: 40%; text-align: right; font-weight: bold; font-size: 13px; border-top: 1px solid #000; padding-top: 4px;">{{ "{:,.2f}".format(invoice.net_a_payer) }}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <div style="margin-top: 10px; font-size: 11px; max-width: 75%;">
+        <span style="color: #555;">La presente facture est arretee a la somme de :</span><br>
+        <strong style="text-transform: uppercase;">{{ invoice.amount_in_words }}</strong>
+    </div>
+
+</body>
+</html>
